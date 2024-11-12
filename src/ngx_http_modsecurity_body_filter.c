@@ -57,6 +57,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     /* get context for request */
     ctx = ngx_http_get_module_ctx(r, ngx_http_modsecurity_module);
     dd("body filter, recovering ctx: %p", ctx);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "MDS context recovered: %p", ctx);
 
     if (ctx == NULL || r->filter_finalize || ctx->response_body_filtered) {
         if (ctx && ctx->response_body_filtered)
@@ -65,6 +66,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     }
 
     if (ctx->intervention_triggered) {
+         ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "MDS intervention already triggered, passing to next filter");
         return ngx_http_next_body_filter(r, in);
     }
 
