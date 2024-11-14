@@ -41,6 +41,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_int_t ret;
     ngx_pool_t *old_pool;
     ngx_int_t is_request_processed = 0;
+     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Entering body filter function");
 #if defined(MODSECURITY_SANITY_CHECKS) && (MODSECURITY_SANITY_CHECKS)
     ngx_http_modsecurity_conf_t *mcf;
     ngx_list_part_t *part = &r->headers_out.headers.part;
@@ -50,7 +51,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     if (in == NULL) {
         ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "MDS input chain is null");
-
+        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Intervention already triggered, skipping further processing");
         return ngx_http_next_body_filter(r, in);
     }
 
@@ -199,6 +200,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     }
 
     if (is_request_processed) {
+         ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Processing last buffer in response");
         old_pool = ngx_http_modsecurity_pcre_malloc_init(r->pool);
         msc_process_response_body(ctx->modsec_transaction);
         ngx_http_modsecurity_pcre_malloc_done(old_pool);
@@ -214,6 +216,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
                      , ret);
                     }
         } else if (ret < 0) {
+              ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Error during response body processing, finalizing with internal server error");
             ctx->response_body_filtered = 1;
             return ngx_http_filter_finalize_request(r,
                     &ngx_http_modsecurity_module, NGX_HTTP_INTERNAL_SERVER_ERROR);
@@ -223,6 +226,7 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
             ctx->header_pt(r);
         return ngx_http_next_body_filter(r, ctx->temp_chain);
     } else {
+         ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Buffer not fully loaded, returning NGX_AGAIN");
         return NGX_AGAIN;
     }
 }
