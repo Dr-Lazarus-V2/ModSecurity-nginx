@@ -41,7 +41,8 @@ ngx_http_modsecurity_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_int_t ret;
     ngx_pool_t *old_pool;
     ngx_int_t is_request_processed = 0;
-     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Entering body filter function");
+    ngx_log_error(NGX_LOG_INFO, r->connection->log, 0, "ModSecurity: Entering body filter function");
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "ModSecurity: Entering body filter function");
 #if defined(MODSECURITY_SANITY_CHECKS) && (MODSECURITY_SANITY_CHECKS)
     ngx_http_modsecurity_conf_t *mcf;
     ngx_list_part_t *part = &r->headers_out.headers.part;
